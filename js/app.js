@@ -67,7 +67,7 @@ function setupEventListeners() {
 }
 
 // Navigation function
-function navigateToRoute() {
+async function navigateToRoute() {
     const hash = window.location.hash.substring(1) || '/';
     app.currentRoute = hash;
     
@@ -97,24 +97,15 @@ function navigateToRoute() {
 }
 
 // Load page content
-function loadPage(pageName) {
+async function loadPage(pageName) {
     const contentContainer = document.getElementById('content-container');
     
     if (pageName === 'login') {
         document.getElementById('login-container').classList.remove('d-none');
         document.getElementById('main-container').classList.add('d-none');
         
-        // Load login page
-        fetch('pages/login.html')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('login-container').innerHTML = html;
-                initLoginPage();
-            })
-            .catch(error => {
-                console.error('Error loading login page:', error);
-                showNotification('خطأ', 'فشل في تحميل صفحة تسجيل الدخول', 'error');
-            });
+        // Login page is already embedded in index.html
+        initLoginPage();
     } else {
         document.getElementById('login-container').classList.add('d-none');
         document.getElementById('main-container').classList.remove('d-none');
@@ -134,49 +125,77 @@ function loadPage(pageName) {
             return;
         }
         
-        fetch(`pages/${pageName}.html`)
-            .then(response => response.text())
-            .then(html => {
-                contentContainer.innerHTML = html;
-                
-                // Initialize specific page functionality
-                switch(pageName) {
-                    case 'dashboard':
-                        initDashboard();
-                        break;
-                    case 'departments':
-                        initDepartments();
-                        break;
-                    case 'employees':
-                        initEmployees();
-                        break;
-                    case 'evaluations':
-                        initEvaluations();
-                        break;
-                    case 'criteria':
-                        initCriteria();
-                        break;
-                    case 'periods':
-                        initPeriods();
-                        break;
-                    case 'reports':
-                        initReports();
-                        break;
-                    case 'users':
-                        initUsers();
-                        break;
-                    case 'profile':
-                        initProfile();
-                        break;
-                    case 'changePassword':
-                        initChangePassword();
-                        break;
+        // Try local file first (for direct file opening)
+        if (pageName === 'dashboard') {
+            // Dashboard page is already available in root directory for direct file opening
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', 'dashboard.html', false);  // Synchronous for simplicity
+                xhr.send(null);
+                if (xhr.status === 200) {
+                    contentContainer.innerHTML = xhr.responseText;
+                    initDashboard();
+                } else {
+                    throw new Error('Could not load dashboard.html');
                 }
-            })
-            .catch(error => {
-                console.error(`Error loading ${pageName} page:`, error);
-                showNotification('خطأ', `فشل في تحميل الصفحة`, 'error');
-            });
+            } catch (error) {
+                // Fallback to fetch for when running with a server
+                try {
+                    const response = await fetch(`pages/${pageName}.html`);
+                    const html = await response.text();
+                    contentContainer.innerHTML = html;
+                    initDashboard();
+                } catch(err) {
+                    console.error(`Error loading dashboard page:`, err);
+                    showNotification('خطأ', `فشل في تحميل صفحة لوحة التحكم`, 'error');
+                }
+            }
+        } else {
+            // For other pages, just try to load from pages directory
+            // When running directly, these modules will just activate with empty content
+            try {
+                const response = await fetch(`pages/${pageName}.html`);
+                const html = await response.text();
+                contentContainer.innerHTML = html;
+            } catch(error) {
+                console.warn(`Could not load ${pageName} page HTML, using placeholder`);
+                contentContainer.innerHTML = `<div class="container"><h2>مرحباً في صفحة ${pageName}</h2><p class="mt-3">جاري الإعداد...</p></div>`;
+            }
+            
+            // Initialize specific page functionality
+            switch(pageName) {
+                case 'dashboard':
+                    initDashboard();
+                    break;
+                case 'departments':
+                    initDepartments();
+                    break;
+                case 'employees':
+                    initEmployees();
+                    break;
+                case 'evaluations':
+                    initEvaluations();
+                    break;
+                case 'criteria':
+                    initCriteria();
+                    break;
+                case 'periods':
+                    initPeriods();
+                    break;
+                case 'reports':
+                    initReports();
+                    break;
+                case 'users':
+                    initUsers();
+                    break;
+                case 'profile':
+                    initProfile();
+                    break;
+                case 'changePassword':
+                    initChangePassword();
+                    break;
+            }
+        }
     }
 }
 

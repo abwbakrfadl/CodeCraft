@@ -1,0 +1,195 @@
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-tachometer-alt me-2"></i> لوحة التحكم
+            </h2>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="stat-icon bg-primary">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 class="stat-value" id="stat-departments">0</h3>
+                        <p class="stat-label">الأقسام</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="stat-icon bg-success">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 class="stat-value" id="stat-employees">0</h3>
+                        <p class="stat-label">الموظفين</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="stat-icon bg-warning">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 class="stat-value" id="stat-completed-evaluations">0</h3>
+                        <p class="stat-label">التقييمات المكتملة</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="stat-icon bg-danger">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 class="stat-value" id="stat-pending-evaluations">0</h3>
+                        <p class="stat-label">التقييمات قيد الإنجاز</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Current Evaluation Period -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-calendar-alt me-2"></i> فترة التقييم الحالية
+                    </h5>
+                    <div id="no-active-period" class="alert alert-warning d-none">
+                        <i class="fas fa-exclamation-triangle me-2"></i> لا توجد فترة تقييم نشطة حالياً.
+                    </div>
+                    <div id="active-period-info">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <strong>الفترة:</strong> 
+                                    <span id="active-period-name"></span>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <strong>التاريخ:</strong> 
+                                    <span id="active-period-dates"></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Department Statistics (Only visible for department managers) -->
+    <div id="department-stats-card" class="row mb-4 d-none">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-chart-pie me-2"></i> إحصائيات القسم
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <p class="mb-1">عدد الموظفين</p>
+                                <h3 id="dept-employees-count">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <p class="mb-1">التقييمات المكتملة</p>
+                                <h3 id="dept-completed-count">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <p class="mb-1">التقييمات المعلقة</p>
+                                <h3 id="dept-pending-count">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <p class="mb-1">نسبة الإكتمال</p>
+                                <h3 id="dept-completion-percentage">0%</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-users me-2"></i> الموظفين حسب القسم
+                    </h5>
+                    <div class="chart-container">
+                        <canvas id="employeesByDepartmentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-chart-pie me-2"></i> حالة التقييمات
+                    </h5>
+                    <div class="chart-container">
+                        <canvas id="evaluationStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Evaluations -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-history me-2"></i> آخر التقييمات
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>الموظف</th>
+                                    <th>المقيم</th>
+                                    <th>الفترة</th>
+                                    <th>الحالة</th>
+                                    <th>الدرجة</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-evaluations-body">
+                                <tr>
+                                    <td colspan="5" class="text-center">جاري تحميل البيانات...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
