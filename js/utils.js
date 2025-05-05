@@ -1,98 +1,64 @@
 /**
- * Utility Functions
- * Provides common utility functions used throughout the application
+ * Utility functions for the application
  */
 
-// Format date to locale string
+// Format date from ISO string to locale date
 function formatDate(dateString) {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ar-SA');
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('ar-SA');
 }
 
-// Format date and time to locale string
+// Format date and time from ISO string to locale date and time
 function formatDateTime(dateTimeString) {
-    if (!dateTimeString) return '';
-    const date = new Date(dateTimeString);
-    return date.toLocaleDateString('ar-SA') + ' ' + date.toLocaleTimeString('ar-SA');
+    if (!dateTimeString) return '-';
+    return new Date(dateTimeString).toLocaleString('ar-SA');
 }
 
-// Format score with color coding based on value
+// Format score with 2 decimal places and Arabic numerals
 function formatScore(score) {
     if (score === null || score === undefined) return '-';
-    
-    const numScore = parseFloat(score);
-    let scoreClass = '';
-    
-    if (numScore >= 9) {
-        scoreClass = 'score-excellent';
-    } else if (numScore >= 7) {
-        scoreClass = 'score-good';
-    } else if (numScore >= 5) {
-        scoreClass = 'score-average';
-    } else {
-        scoreClass = 'score-poor';
-    }
-    
-    return `<span class="${scoreClass}">${numScore.toFixed(1)}</span>`;
+    return parseFloat(score).toLocaleString('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// Format evaluation status with badge
+// Format evaluation status with color-coded badge
 function formatStatus(statusId) {
-    const status = getEvaluationStatusById(statusId);
-    if (!status) return '';
+    const statusMap = {
+        1: { name: 'مسودة', class: 'bg-secondary' },
+        2: { name: 'تم التقديم', class: 'bg-primary' },
+        3: { name: 'قيد المراجعة', class: 'bg-warning text-dark' },
+        4: { name: 'مكتمل', class: 'bg-success' },
+        5: { name: 'مرفوض', class: 'bg-danger' }
+    };
     
-    let badgeClass = '';
-    
-    switch (status.StatusName) {
-        case 'Draft':
-            badgeClass = 'bg-secondary';
-            break;
-        case 'Submitted':
-            badgeClass = 'bg-primary';
-            break;
-        case 'In Review':
-            badgeClass = 'bg-warning';
-            break;
-        case 'Completed':
-            badgeClass = 'bg-success';
-            break;
-        case 'Rejected':
-            badgeClass = 'bg-danger';
-            break;
-        default:
-            badgeClass = 'bg-secondary';
-    }
-    
-    return `<span class="badge ${badgeClass}">${status.StatusName}</span>`;
+    const status = statusMap[statusId] || { name: 'غير معروف', class: 'bg-secondary' };
+    return `<span class="badge ${status.class} status-badge">${status.name}</span>`;
 }
 
-// Show notification toast
+// Show toast notification
 function showNotification(title, message, type = 'info') {
     const toast = document.getElementById('toast-notification');
     const toastTitle = document.getElementById('toast-title');
     const toastMessage = document.getElementById('toast-message');
     const toastIcon = document.getElementById('toast-icon');
     
-    // Set title and message
     toastTitle.textContent = title;
     toastMessage.textContent = message;
     
     // Set icon and color based on type
-    switch (type) {
+    toastIcon.className = 'fas me-2';
+    
+    switch(type) {
         case 'success':
-            toastIcon.className = 'fas fa-check-circle me-2 text-success';
+            toastIcon.classList.add('fa-check-circle', 'text-success');
             break;
         case 'error':
-            toastIcon.className = 'fas fa-exclamation-circle me-2 text-danger';
+            toastIcon.classList.add('fa-times-circle', 'text-danger');
             break;
         case 'warning':
-            toastIcon.className = 'fas fa-exclamation-triangle me-2 text-warning';
+            toastIcon.classList.add('fa-exclamation-triangle', 'text-warning');
             break;
-        case 'info':
         default:
-            toastIcon.className = 'fas fa-info-circle me-2 text-primary';
-            break;
+            toastIcon.classList.add('fa-info-circle', 'text-primary');
     }
     
     // Show toast
@@ -100,34 +66,30 @@ function showNotification(title, message, type = 'info') {
     bsToast.show();
 }
 
-// Download data as CSV file
+// Export table data to CSV
 function exportToCSV(data, filename) {
-    if (!data || !data.length) {
-        showNotification('تصدير البيانات', 'لا توجد بيانات للتصدير', 'warning');
-        return;
+    // Convert data to CSV format
+    let csv = [];
+    
+    // Add headers
+    if (data.length > 0) {
+        const headers = Object.keys(data[0]);
+        csv.push(headers.join(','));
     }
     
-    // Get headers from first object
-    const headers = Object.keys(data[0]);
-    
-    // Create CSV content
-    let csvContent = headers.join(',') + '\n';
-    
-    data.forEach(item => {
-        const row = headers.map(header => {
-            // Handle special characters and ensure strings are quoted
-            const cellValue = item[header] !== null && item[header] !== undefined ? item[header].toString() : '';
-            return `"${cellValue.replace(/"/g, '""')}"`;
+    // Add rows
+    data.forEach(row => {
+        const values = Object.values(row).map(value => {
+            if (value === null || value === undefined) return '';
+            return `"${value.toString().replace(/"/g, '""')}"`;
         });
-        
-        csvContent += row.join(',') + '\n';
+        csv.push(values.join(','));
     });
     
     // Create blob and download
+    const csvContent = csv.join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     saveAs(blob, filename);
-    
-    showNotification('تصدير البيانات', 'تم تصدير البيانات بنجاح', 'success');
 }
 
 // Create pagination controls
@@ -136,62 +98,45 @@ function createPagination(totalItems, itemsPerPage, currentPage, onPageChange) {
     
     if (totalPages <= 1) return '';
     
-    let html = `
-    <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center">
+    let paginationHTML = `
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" aria-label="Previous" data-page="${currentPage - 1}">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
     `;
     
-    // Previous button
-    html += `
-        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-            <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-            </a>
-        </li>
-    `;
-    
-    // Page numbers
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    
-    if (endPage - startPage + 1 < maxVisiblePages) {
-        startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
-        html += `
+    // Generate page links
+    for (let i = 1; i <= totalPages; i++) {
+        paginationHTML += `
             <li class="page-item ${i === currentPage ? 'active' : ''}">
                 <a class="page-link" href="#" data-page="${i}">${i}</a>
             </li>
         `;
     }
     
-    // Next button
-    html += `
-        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-            <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-            </a>
-        </li>
+    paginationHTML += `
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" aria-label="Next" data-page="${currentPage + 1}">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
     `;
     
-    html += `
-        </ul>
-    </nav>
-    `;
+    const paginationElement = document.createElement('div');
+    paginationElement.innerHTML = paginationHTML;
     
-    // Create element and attach event listeners
-    const template = document.createElement('template');
-    template.innerHTML = html.trim();
-    const paginationElement = template.content.firstChild;
-    
-    const pageLinks = paginationElement.querySelectorAll('.page-link');
-    pageLinks.forEach(link => {
+    // Add event listeners to pagination links
+    paginationElement.querySelectorAll('.page-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const page = parseInt(link.dataset.page);
-            if (page >= 1 && page <= totalPages) {
+            const page = parseInt(e.target.closest('.page-link').dataset.page);
+            
+            if (page >= 1 && page <= totalPages && page !== currentPage) {
                 onPageChange(page);
             }
         });
@@ -202,9 +147,10 @@ function createPagination(totalItems, itemsPerPage, currentPage, onPageChange) {
 
 // Filter data by search term
 function filterDataBySearchTerm(data, term, fields) {
-    if (!term) return data;
+    if (!term || term.trim() === '') return data;
     
     term = term.toLowerCase();
+    
     return data.filter(item => {
         return fields.some(field => {
             const value = item[field];
@@ -232,12 +178,11 @@ function validateRequiredFields(formId) {
     return isValid;
 }
 
-// Reset form fields
+// Reset form and validation states
 function resetForm(formId) {
     const form = document.getElementById(formId);
     form.reset();
     
-    // Remove validation classes
     form.querySelectorAll('.is-invalid').forEach(field => {
         field.classList.remove('is-invalid');
     });
@@ -245,50 +190,51 @@ function resetForm(formId) {
 
 // Create confirmation modal
 function createConfirmationModal(title, message, confirmCallback, cancelCallback = null) {
-    // Check if modal already exists and remove it
-    const existingModal = document.getElementById('confirmationModal');
-    if (existingModal) {
-        existingModal.remove();
-    }
+    // Create modal elements
+    const modalId = 'confirmationModal';
+    const modalElement = document.createElement('div');
+    modalElement.className = 'modal fade';
+    modalElement.id = modalId;
+    modalElement.tabIndex = -1;
+    modalElement.setAttribute('aria-labelledby', `${modalId}Label`);
+    modalElement.setAttribute('aria-hidden', 'true');
     
-    // Create modal element
-    const modalHtml = `
-        <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="confirmationModalLabel">${title}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
-                    </div>
-                    <div class="modal-body">
-                        ${message}
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                        <button type="button" class="btn btn-primary" id="confirmBtn">تأكيد</button>
-                    </div>
+    modalElement.innerHTML = `
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="${modalId}Label">${title}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                </div>
+                <div class="modal-body">
+                    ${message}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-danger" id="${modalId}ConfirmBtn">تأكيد</button>
                 </div>
             </div>
         </div>
     `;
     
-    // Append modal to body
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    // Add modal to the document
+    document.body.appendChild(modalElement);
     
-    // Get modal element and initialize Bootstrap modal
-    const modalElement = document.getElementById('confirmationModal');
+    // Create Bootstrap modal instance
     const modal = new bootstrap.Modal(modalElement);
     
-    // Set up event listeners
-    document.getElementById('confirmBtn').addEventListener('click', () => {
+    // Add event listeners
+    const confirmBtn = document.getElementById(`${modalId}ConfirmBtn`);
+    confirmBtn.addEventListener('click', () => {
+        confirmCallback();
         modal.hide();
-        if (confirmCallback) confirmCallback();
     });
     
-    if (cancelCallback) {
-        modalElement.addEventListener('hidden.bs.modal', cancelCallback);
-    }
+    modalElement.addEventListener('hidden.bs.modal', () => {
+        if (cancelCallback) cancelCallback();
+        document.body.removeChild(modalElement);
+    });
     
-    // Show modal
+    // Show the modal
     modal.show();
 }

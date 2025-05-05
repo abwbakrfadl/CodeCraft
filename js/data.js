@@ -390,10 +390,10 @@ function getEvaluationsByEvaluator(evaluatorId) {
 }
 
 function getEvaluationsByDepartment(departmentId) {
+    const evaluations = getAllEmployeeEvaluations();
     const employees = getEmployeesByDepartment(departmentId);
     const employeeIds = employees.map(emp => emp.EmployeeID);
     
-    const evaluations = getAllEmployeeEvaluations();
     return evaluations.filter(eval => employeeIds.includes(eval.EmployeeID));
 }
 
@@ -406,12 +406,6 @@ function updateEmployeeEvaluation(evaluationId, updates) {
 }
 
 function deleteEmployeeEvaluation(evaluationId) {
-    // Delete evaluation details first
-    const details = getAllEvaluationDetails();
-    const newDetails = details.filter(d => d.EvaluationID !== evaluationId);
-    localStorage.setItem('evaluationDetails', JSON.stringify(newDetails));
-    
-    // Then delete the evaluation
     return deleteItem('employeeEvaluations', 'EvaluationID', evaluationId);
 }
 
@@ -441,26 +435,26 @@ function deleteEvaluationDetail(detailId) {
     return deleteItem('evaluationDetails', 'DetailID', detailId);
 }
 
-// Calculate weighted score for an evaluation
+// Calculation functions
 function calculateEvaluationScore(evaluationId) {
     const details = getEvaluationDetailsByEvaluationId(evaluationId);
-    if (details.length === 0) return 0;
+    const criteria = getAllEvaluationCriteria();
     
     let totalWeightedScore = 0;
     let totalWeight = 0;
     
     details.forEach(detail => {
-        const criteria = getEvaluationCriteriaById(detail.CriteriaID);
-        if (criteria) {
-            totalWeightedScore += detail.Score * criteria.Weight;
-            totalWeight += criteria.Weight;
+        const criterion = criteria.find(c => c.CriteriaID === detail.CriteriaID);
+        if (criterion) {
+            totalWeightedScore += detail.Score * criterion.Weight;
+            totalWeight += criterion.Weight;
         }
     });
     
-    return totalWeight > 0 ? (totalWeightedScore / totalWeight).toFixed(2) : 0;
+    // Calculate weighted average
+    return totalWeight > 0 ? totalWeightedScore / totalWeight : 0;
 }
 
-// Update evaluation total score
 function updateEvaluationTotalScore(evaluationId) {
     const score = calculateEvaluationScore(evaluationId);
     return updateEmployeeEvaluation(evaluationId, { TotalScore: score });
