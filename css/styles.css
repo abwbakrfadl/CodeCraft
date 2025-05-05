@@ -1,0 +1,271 @@
+/* Global Styles */
+:root {
+    --primary-color: #1976d2;
+    --secondary-color: #f50057;
+    --success-color: #2e7d32;
+    --info-color: #0288d1;
+    --warning-color: #ff9800;
+    --danger-color: #d32f2f;
+    --light-color: #f5f5f5;
+    --dark-color: #263238;
+    --text-color: #333;
+    --light-text-color: #757575;
+    --border-color: #e0e0e0;
+    --sidebar-width: 260px;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9f9f9;
+    color: var(--text-color);
+    min-height: 100vh;
+    padding-bottom: 60px; /* Space for footer */
+}
+
+/* Loading screen */
+#loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 9999;
+}
+
+/* Login styles */
+.login-card {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    background-color: white;
+}
+
+.login-logo {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.login-logo i {
+    font-size: 48px;
+    color: var(--primary-color);
+}
+
+/* Card styles */
+.card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    background-color: white;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+}
+
+.table-card {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Dashboard styles */
+.dashboard-stat-card {
+    border-radius: 8px;
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+
+.dashboard-stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    font-size: 36px;
+    opacity: 0.8;
+}
+
+.chart-container {
+    height: 300px;
+    position: relative;
+}
+
+/* Tables */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    font-weight: 600;
+    border-top: none;
+    background-color: #f5f5f5;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(25, 118, 210, 0.05);
+}
+
+.action-column {
+    width: 120px;
+}
+
+/* Forms */
+.form-label {
+    font-weight: 500;
+}
+
+.required-field::after {
+    content: " *";
+    color: var(--danger-color);
+}
+
+/* Buttons */
+.btn {
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+}
+
+.btn-icon {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+}
+
+.btn-action {
+    padding: 0.25rem 0.5rem;
+    margin-right: 5px;
+}
+
+/* Badges */
+.badge {
+    padding: 0.4em 0.7em;
+    font-weight: 500;
+}
+
+/* Status colors */
+.status-draft {
+    background-color: #757575;
+}
+
+.status-submitted {
+    background-color: #0277bd;
+}
+
+.status-in-review {
+    background-color: #ff8f00;
+}
+
+.status-completed {
+    background-color: #2e7d32;
+}
+
+.status-rejected {
+    background-color: #c62828;
+}
+
+/* Score rating colors */
+.score-excellent {
+    color: #2e7d32;
+}
+
+.score-good {
+    color: #0277bd;
+}
+
+.score-average {
+    color: #ff8f00;
+}
+
+.score-poor {
+    color: #c62828;
+}
+
+/* Filters */
+.filter-card {
+    margin-bottom: 20px;
+}
+
+.filter-section {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.filter-section:last-child {
+    border-bottom: none;
+}
+
+/* Search box */
+.search-box {
+    position: relative;
+}
+
+.search-box i {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    color: var(--light-text-color);
+}
+
+.search-input {
+    padding-right: 35px;
+}
+
+/* Evaluation form */
+.criteria-item {
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 15px;
+    border-radius: 4px;
+    background-color: #fafafa;
+}
+
+.score-input-group {
+    max-width: 150px;
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    body {
+        padding: 0;
+        background-color: white;
+    }
+    
+    .container-fluid {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dashboard-stat-card {
+        margin-bottom: 15px;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+    
+    .action-column {
+        width: 80px;
+    }
+    
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+}

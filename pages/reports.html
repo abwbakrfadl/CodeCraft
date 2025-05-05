@@ -1,0 +1,175 @@
+<div class="container-fluid">
+    <!-- Page Title -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="fas fa-file-chart-column me-2"></i> تقارير التقييم</h2>
+            <p class="text-muted">عرض وتحليل نتائج تقييمات الموظفين</p>
+        </div>
+    </div>
+
+    <!-- Filters & Export -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-end">
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <label for="period-filter" class="form-label">فترة التقييم</label>
+                    <select class="form-select" id="period-filter">
+                        <option value="">جميع الفترات</option>
+                        <!-- Periods will be loaded dynamically -->
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <label for="department-filter" class="form-label">القسم</label>
+                    <select class="form-select" id="department-filter">
+                        <option value="">جميع الأقسام</option>
+                        <!-- Departments will be loaded dynamically -->
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button class="btn btn-primary w-50" id="export-csv-btn">
+                        <i class="fas fa-file-csv me-1"></i> تصدير CSV
+                    </button>
+                    <button class="btn btn-info w-50" id="print-report-btn">
+                        <i class="fas fa-print me-1"></i> طباعة
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4 no-print-break">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card dashboard-stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted">إجمالي التقييمات</h6>
+                            <h2 id="total-evaluations-count" class="mb-0">0</h2>
+                        </div>
+                        <div class="stat-icon text-primary">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card dashboard-stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted">متوسط الدرجات</h6>
+                            <h2 id="average-score-value" class="mb-0">0.0</h2>
+                        </div>
+                        <div class="stat-icon text-success">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card dashboard-stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted">نسبة الاكتمال</h6>
+                            <h2 id="completion-rate-value" class="mb-0">0.0%</h2>
+                        </div>
+                        <div class="stat-icon text-info">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card dashboard-stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex flex-column">
+                        <div class="d-flex justify-content-between">
+                            <span>مكتملة</span>
+                            <span id="completed-evaluations-count" class="badge bg-success">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <span>قيد المراجعة</span>
+                            <span id="in-review-evaluations-count" class="badge bg-warning">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4 no-print-break">
+        <!-- Department Averages Chart -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">متوسط درجات التقييم حسب القسم</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="departmentAveragesChart"></canvas>
+                        <div id="chart-no-data-message-1" class="text-center text-muted py-5 d-none">
+                            <i class="fas fa-chart-bar fa-3x mb-3"></i>
+                            <p>لا توجد بيانات كافية لعرض الرسم البياني</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Score Distribution Chart -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">توزيع درجات التقييم</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="scoreDistributionChart"></canvas>
+                        <div id="chart-no-data-message-2" class="text-center text-muted py-5 d-none">
+                            <i class="fas fa-chart-pie fa-3x mb-3"></i>
+                            <p>لا توجد بيانات كافية لعرض الرسم البياني</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Evaluations -->
+    <div class="card table-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">تفاصيل التقييمات</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>الموظف</th>
+                            <th>القسم</th>
+                            <th>المقيّم</th>
+                            <th>فترة التقييم</th>
+                            <th>الدرجة</th>
+                            <th>الحالة</th>
+                            <th class="no-print">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="evaluations-table-body">
+                        <tr>
+                            <td colspan="7" class="text-center">جاري تحميل البيانات...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

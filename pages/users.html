@@ -1,0 +1,130 @@
+<div class="container-fluid">
+    <!-- Page Title -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="fas fa-user-gear me-2"></i> إدارة المستخدمين</h2>
+            <p class="text-muted">إضافة وتعديل وإدارة حسابات مستخدمي النظام</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Users List -->
+        <div class="col-lg-8">
+            <div class="card table-card mb-4">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-5">
+                            <h5 class="mb-0">قائمة المستخدمين</h5>
+                        </div>
+                        <div class="col-md-4 mt-2 mt-md-0">
+                            <div class="search-box">
+                                <input type="text" class="form-control search-input" id="user-search" placeholder="بحث...">
+                                <i class="fas fa-search"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mt-2 mt-md-0">
+                            <select class="form-select" id="status-filter">
+                                <option value="">جميع الحالات</option>
+                                <option value="1">نشط</option>
+                                <option value="0">غير نشط</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>اسم المستخدم</th>
+                                    <th>الاسم الكامل</th>
+                                    <th>البريد الإلكتروني</th>
+                                    <th>الأدوار</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <tr>
+                                    <td colspan="6" class="text-center">جاري تحميل البيانات...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Edit User -->
+        <div class="col-lg-4">
+            <div class="card mb-4" id="user-form-card">
+                <div class="card-header">
+                    <h5 class="mb-0" id="user-form-title">إضافة مستخدم جديد</h5>
+                </div>
+                <div class="card-body">
+                    <form id="user-form">
+                        <div class="mb-3">
+                            <label for="user-username" class="form-label required-field">اسم المستخدم</label>
+                            <input type="text" class="form-control" id="user-username" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="user-fullname" class="form-label required-field">الاسم الكامل</label>
+                            <input type="text" class="form-control" id="user-fullname" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="user-email" class="form-label required-field">البريد الإلكتروني</label>
+                            <input type="email" class="form-control" id="user-email" required>
+                        </div>
+
+                        <!-- Password Change Section (for editing) -->
+                        <div id="password-change-section" class="mb-3 d-none">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="change-password-checkbox">
+                                <label class="form-check-label" for="change-password-checkbox">
+                                    تغيير كلمة المرور
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Password Fields -->
+                        <div id="password-fields">
+                            <div class="mb-3">
+                                <label for="user-password" class="form-label required-field">كلمة المرور</label>
+                                <input type="password" class="form-control" id="user-password" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="user-confirm-password" class="form-label required-field">تأكيد كلمة المرور</label>
+                                <input type="password" class="form-control" id="user-confirm-password" required>
+                            </div>
+                        </div>
+
+                        <!-- User Roles -->
+                        <div class="mb-3">
+                            <label class="form-label required-field">أدوار المستخدم</label>
+                            <div id="user-roles-container">
+                                <!-- Roles will be loaded dynamically -->
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="user-is-active" checked>
+                                <label class="form-check-label" for="user-is-active">
+                                    مستخدم نشط
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" id="cancel-btn">إلغاء</button>
+                            <button type="submit" class="btn btn-primary" id="save-btn">حفظ</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

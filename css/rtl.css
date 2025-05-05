@@ -1,0 +1,146 @@
+/* RTL (Right-to-Left) specific styles */
+
+body {
+    text-align: right;
+}
+
+.dropdown-menu-end {
+    right: auto !important;
+    left: 0 !important;
+}
+
+.ms-auto {
+    margin-right: auto !important;
+    margin-left: 0 !important;
+}
+
+.me-1, .me-2, .me-3 {
+    margin-left: 0.25rem !important;
+    margin-right: 0 !important;
+}
+
+.me-2 {
+    margin-left: 0.5rem !important;
+}
+
+.me-3 {
+    margin-left: 1rem !important;
+}
+
+.ms-1, .ms-2, .ms-3 {
+    margin-right: 0.25rem !important;
+    margin-left: 0 !important;
+}
+
+.ms-2 {
+    margin-right: 0.5rem !important;
+}
+
+.ms-3 {
+    margin-right: 1rem !important;
+}
+
+.toast-container.position-fixed.bottom-0.end-0 {
+    left: 0 !important;
+    right: auto !important;
+}
+
+.me-auto {
+    margin-left: auto !important;
+    margin-right: 0 !important;
+}
+
+.dropdown-item i {
+    margin-left: 0.5rem !important;
+    margin-right: 0 !important;
+}
+
+.form-check {
+    padding-right: 1.5em;
+    padding-left: 0;
+}
+
+.form-check .form-check-input {
+    float: right;
+    margin-right: -1.5em;
+    margin-left: 0;
+}
+
+.input-group > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
+    margin-right: -1px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 0.375rem;
+    border-bottom-left-radius: 0.375rem;
+}
+
+.input-group:not(.has-validation) > :not(:last-child):not(.dropdown-toggle):not(.dropdown-menu),
+.input-group:not(.has-validation) > .dropdown-toggle:nth-last-child(n+3) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+}
+
+.search-box i {
+    right: auto;
+    left: 10px;
+}
+
+.search-input {
+    padding-right: 12px;
+    padding-left: 35px;
+}
+
+/* Progress bars */
+.progress-bar-striped {
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+    background-size: 1rem 1rem;
+}
+
+/* Modal dialog */
+.modal-header .btn-close {
+    margin: -0.5rem auto -0.5rem -0.5rem;
+}
+
+/* Table action buttons */
+.action-column {
+    text-align: left;
+}
+
+.btn-action {
+    margin-left: 5px;
+    margin-right: 0;
+}
+
+/* Evaluation specific */
+.criteria-item {
+    padding-right: 15px;
+}
+
+/* Toast notifications */
+.toast-header i {
+    margin-left: 0.5rem;
+    margin-right: 0;
+}
+
+/* Fix for dropdown toggle caret position */
+.dropdown-toggle::after {
+    margin-right: 0.255em;
+    margin-left: 0;
+}
+
+/* Fixing input groups for RTL */
+.input-group-text:first-child {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+}
+
+.input-group-text:last-child {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 0.375rem;
+    border-bottom-left-radius: 0.375rem;
+}

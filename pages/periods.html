@@ -1,0 +1,105 @@
+<div class="container-fluid">
+    <!-- Page Title -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="fas fa-calendar-alt me-2"></i> فترات التقييم</h2>
+            <p class="text-muted">إدارة فترات وتوقيتات تقييم الموظفين</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Periods List -->
+        <div class="col-lg-8">
+            <div class="card table-card mb-4">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-5">
+                            <h5 class="mb-0">قائمة الفترات</h5>
+                        </div>
+                        <div class="col-md-4 mt-2 mt-md-0">
+                            <div class="search-box">
+                                <input type="text" class="form-control search-input" id="period-search" placeholder="بحث...">
+                                <i class="fas fa-search"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mt-2 mt-md-0">
+                            <select class="form-select" id="year-filter">
+                                <option value="">جميع السنوات</option>
+                                <!-- Year options will be added dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>اسم الفترة</th>
+                                    <th>تاريخ البداية</th>
+                                    <th>تاريخ النهاية</th>
+                                    <th>السنة</th>
+                                    <th>الحالة</th>
+                                    <th>عدد التقييمات</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="periods-table-body">
+                                <tr>
+                                    <td colspan="7" class="text-center">جاري تحميل البيانات...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Edit Period -->
+        <div class="col-lg-4">
+            <div class="card mb-4" id="period-form-card">
+                <div class="card-header">
+                    <h5 class="mb-0" id="period-form-title">إضافة فترة تقييم جديدة</h5>
+                </div>
+                <div class="card-body">
+                    <form id="period-form">
+                        <div class="mb-3">
+                            <label for="period-name" class="form-label required-field">اسم الفترة</label>
+                            <input type="text" class="form-control" id="period-name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="period-start-date" class="form-label required-field">تاريخ البداية</label>
+                            <input type="date" class="form-control" id="period-start-date" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="period-end-date" class="form-label required-field">تاريخ النهاية</label>
+                            <input type="date" class="form-control" id="period-end-date" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="period-year" class="form-label required-field">السنة</label>
+                            <input type="number" class="form-control" id="period-year" min="2000" max="2100" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="period-is-active">
+                                <label class="form-check-label" for="period-is-active">
+                                    فترة نشطة
+                                </label>
+                                <small class="d-block text-muted mt-1">تنبيه: يمكن تنشيط فترة واحدة فقط في نفس الوقت</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" id="cancel-btn">إلغاء</button>
+                            <button type="submit" class="btn btn-primary" id="save-btn">حفظ</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
