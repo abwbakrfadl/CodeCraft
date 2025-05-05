@@ -1,93 +1,120 @@
 /**
  * Dashboard Module
- * Handles dashboard statistics and visualizations
+ * Handles dashboard functionality and statistics
  */
 
 // Initialize dashboard page
 function initDashboard() {
+    // Update dashboard statistics
     updateDashboardStats();
+    
+    // Render charts
     renderEmployeesByDepartmentChart();
     renderEvaluationStatusChart();
+    
+    // Show recent evaluations
     renderRecentEvaluations();
-}
-
-// Update dashboard statistics cards
-function updateDashboardStats() {
-    const employees = getAllEmployees().filter(emp => emp.IsActive === 1);
-    const departments = getAllDepartments();
-    const activePeriod = getActiveEvaluationPeriod();
-    const evaluations = getAllEmployeeEvaluations();
     
-    // Count completed evaluations
-    const completedEvaluations = evaluations.filter(eval => eval.StatusID === 4); // Status 4 = Completed
-    
-    // Calculate average score for completed evaluations
-    let totalScore = 0;
-    let scoreCount = 0;
-    
-    completedEvaluations.forEach(eval => {
-        if (eval.TotalScore) {
-            totalScore += parseFloat(eval.TotalScore);
-            scoreCount++;
+    // If the user is a department manager, show only their department statistics
+    if (isDepartmentManager() && !isAdmin() && !isHRManager()) {
+        const currentEmployee = getCurrentEmployee();
+        if (currentEmployee) {
+            getDepartmentStatistics(currentEmployee.DepartmentID);
         }
-    });
-    
-    const avgScore = scoreCount > 0 ? (totalScore / scoreCount).toFixed(1) : 0;
-    
-    // Update stats in UI
-    document.getElementById('total-employees').textContent = employees.length;
-    document.getElementById('total-departments').textContent = departments.length;
-    document.getElementById('total-evaluations').textContent = evaluations.length;
-    document.getElementById('average-score').textContent = avgScore;
-    
-    // Update current evaluation period
-    const periodInfo = document.getElementById('current-period-info');
-    if (activePeriod) {
-        periodInfo.textContent = `${activePeriod.PeriodName} (${formatDate(activePeriod.StartDate)} - ${formatDate(activePeriod.EndDate)})`;
-    } else {
-        periodInfo.textContent = 'لا توجد فترة تقييم نشطة حالياً';
     }
 }
 
-// Render employees by department chart
-function renderEmployeesByDepartmentChart() {
-    const employees = getAllEmployees().filter(emp => emp.IsActive === 1);
+// Update dashboard statistics
+function updateDashboardStats() {
     const departments = getAllDepartments();
+    const employees = getAllEmployees();
+    const activePeriod = getActiveEvaluationPeriod();
+    const evaluations = getAllEmployeeEvaluations();
     
-    // Count employees in each department
-    const departmentCounts = departments.map(dept => {
-        const count = employees.filter(emp => emp.DepartmentID === dept.DepartmentID).length;
-        return {
-            department: dept.DepartmentName,
-            count: count
-        };
+    // Filter active employees
+    const activeEmployees = employees.filter(e => e.IsActive === 1);
+    
+    // Count evaluations for active period
+    let activeEvaluations = [];
+    if (activePeriod) {
+        activeEvaluations = evaluations.filter(e => e.PeriodID === activePeriod.PeriodID);
+    }
+    
+    // Count completed evaluations
+    const completedEvaluations = activeEvaluations.filter(e => e.StatusID === 4);
+    
+    // Count pending evaluations
+    const pendingEvaluations = activeEvaluations.filter(e => e.StatusID !== 4 && e.StatusID !== 5);
+    
+    // Update statistics in the UI
+    document.getElementById('stat-departments').textContent = departments.length;
+    document.getElementById('stat-employees').textContent = activeEmployees.length;
+    document.getElementById('stat-completed-evaluations').textContent = completedEvaluations.length;
+    document.getElementById('stat-pending-evaluations').textContent = pendingEvaluations.length;
+    
+    // Update current period info
+    if (activePeriod) {
+        document.getElementById('active-period-name').textContent = activePeriod.PeriodName;
+        document.getElementById('active-period-dates').textContent = `${formatDate(activePeriod.StartDate)} - ${formatDate(activePeriod.EndDate)}`;
+        document.getElementById('no-active-period').classList.add('d-none');
+        document.getElementById('active-period-info').classList.remove('d-none');
+    } else {
+        document.getElementById('no-active-period').classList.remove('d-none');
+        document.getElementById('active-period-info').classList.add('d-none');
+    }
+}
+
+// Render chart showing employees by department
+function renderEmployeesByDepartmentChart() {
+    const departments = getAllDepartments();
+    const employees = getAllEmployees().filter(e => e.IsActive === 1);
+    
+    // Count employees by department
+    const departmentCounts = {};
+    departments.forEach(dept => {
+        departmentCounts[dept.DepartmentID] = 0;
+    });
+    
+    employees.forEach(emp => {
+        if (departmentCounts[emp.DepartmentID] !== undefined) {
+            departmentCounts[emp.DepartmentID]++;
+        }
     });
     
     // Prepare chart data
-    const labels = departmentCounts.map(item => item.department);
-    const data = departmentCounts.map(item => item.count);
-    const colors = [
-        'rgba(54, 162, 235, 0.8)',
-        'rgba(255, 99, 132, 0.8)',
-        'rgba(255, 206, 86, 0.8)',
-        'rgba(75, 192, 192, 0.8)',
-        'rgba(153, 102, 255, 0.8)',
-        'rgba(255, 159, 64, 0.8)'
+    const deptNames = [];
+    const deptCounts = [];
+    const backgroundColors = [
+        'rgba(75, 192, 192, 0.2)',
+        'rgba(54, 162, 235, 0.2)',
+        'rgba(255, 206, 86, 0.2)',
+        'rgba(255, 99, 132, 0.2)',
+        'rgba(153, 102, 255, 0.2)'
+    ];
+    const borderColors = [
+        'rgba(75, 192, 192, 1)',
+        'rgba(54, 162, 235, 1)',
+        'rgba(255, 206, 86, 1)',
+        'rgba(255, 99, 132, 1)',
+        'rgba(153, 102, 255, 1)'
     ];
     
-    // Get canvas context
-    const ctx = document.getElementById('employeesByDepartmentChart').getContext('2d');
+    departments.forEach((dept, index) => {
+        deptNames.push(dept.DepartmentName);
+        deptCounts.push(departmentCounts[dept.DepartmentID]);
+    });
     
     // Create chart
+    const ctx = document.getElementById('employeesByDepartmentChart').getContext('2d');
     new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: labels,
+            labels: deptNames,
             datasets: [{
                 label: 'عدد الموظفين',
-                data: data,
-                backgroundColor: colors,
-                borderColor: colors.map(color => color.replace('0.8', '1')),
+                data: deptCounts,
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
                 borderWidth: 1
             }]
         },
@@ -97,18 +124,8 @@ function renderEmployeesByDepartmentChart() {
             scales: {
                 y: {
                     beginAtZero: true,
-                    precision: 0
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                title: {
-                    display: true,
-                    text: 'توزيع الموظفين حسب الأقسام',
-                    font: {
-                        size: 16
+                    ticks: {
+                        stepSize: 1
                     }
                 }
             }
@@ -116,43 +133,59 @@ function renderEmployeesByDepartmentChart() {
     });
 }
 
-// Render evaluation status chart
+// Render chart showing evaluation statuses
 function renderEvaluationStatusChart() {
-    const evaluations = getAllEmployeeEvaluations();
+    const activePeriod = getActiveEvaluationPeriod();
+    if (!activePeriod) return;
+    
+    const evaluations = getAllEmployeeEvaluations().filter(e => e.PeriodID === activePeriod.PeriodID);
     const statuses = getAllEvaluationStatuses();
     
     // Count evaluations by status
-    const statusCounts = statuses.map(status => {
-        const count = evaluations.filter(eval => eval.StatusID === status.StatusID).length;
-        return {
-            status: status.StatusName,
-            count: count
-        };
+    const statusCounts = {};
+    statuses.forEach(status => {
+        statusCounts[status.StatusID] = 0;
+    });
+    
+    evaluations.forEach(eval => {
+        if (statusCounts[eval.StatusID] !== undefined) {
+            statusCounts[eval.StatusID]++;
+        }
     });
     
     // Prepare chart data
-    const labels = statusCounts.map(item => item.status);
-    const data = statusCounts.map(item => item.count);
-    const colors = [
-        'rgba(108, 117, 125, 0.8)', // Draft (Gray)
-        'rgba(0, 123, 255, 0.8)',   // Submitted (Blue)
-        'rgba(255, 193, 7, 0.8)',   // In Review (Yellow)
-        'rgba(40, 167, 69, 0.8)',   // Completed (Green)
-        'rgba(220, 53, 69, 0.8)'    // Rejected (Red)
+    const statusNames = [];
+    const statusValues = [];
+    const backgroundColors = [
+        'rgba(108, 117, 125, 0.2)',  // Draft - Gray
+        'rgba(13, 110, 253, 0.2)',   // Submitted - Blue
+        'rgba(255, 193, 7, 0.2)',    // In Review - Yellow
+        'rgba(25, 135, 84, 0.2)',    // Completed - Green
+        'rgba(220, 53, 69, 0.2)'     // Rejected - Red
+    ];
+    const borderColors = [
+        'rgba(108, 117, 125, 1)',
+        'rgba(13, 110, 253, 1)',
+        'rgba(255, 193, 7, 1)',
+        'rgba(25, 135, 84, 1)',
+        'rgba(220, 53, 69, 1)'
     ];
     
-    // Get canvas context
-    const ctx = document.getElementById('evaluationStatusChart').getContext('2d');
+    statuses.forEach((status, index) => {
+        statusNames.push(status.Description);
+        statusValues.push(statusCounts[status.StatusID]);
+    });
     
     // Create chart
+    const ctx = document.getElementById('evaluationStatusChart').getContext('2d');
     new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: labels,
+            labels: statusNames,
             datasets: [{
-                data: data,
-                backgroundColor: colors,
-                borderColor: colors.map(color => color.replace('0.8', '1')),
+                data: statusValues,
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
                 borderWidth: 1
             }]
         },
@@ -162,13 +195,6 @@ function renderEvaluationStatusChart() {
             plugins: {
                 legend: {
                     position: 'right'
-                },
-                title: {
-                    display: true,
-                    text: 'توزيع التقييمات حسب الحالة',
-                    font: {
-                        size: 16
-                    }
                 }
             }
         }
@@ -178,73 +204,81 @@ function renderEvaluationStatusChart() {
 // Render recent evaluations table
 function renderRecentEvaluations() {
     const evaluations = getAllEmployeeEvaluations();
+    const employees = getAllEmployees();
+    const periods = getAllEvaluationPeriods();
     
-    // Sort by submission date (most recent first) and take the first 5
-    const recentEvaluations = evaluations
-        .filter(eval => eval.SubmissionDate) // Only show submitted evaluations
-        .sort((a, b) => new Date(b.SubmissionDate) - new Date(a.SubmissionDate))
-        .slice(0, 5);
+    // Sort evaluations by date (newest first)
+    const sortedEvaluations = [...evaluations].sort((a, b) => {
+        return new Date(b.UpdatedAt) - new Date(a.UpdatedAt);
+    });
     
-    const tableBody = document.getElementById('recent-evaluations-table-body');
-    tableBody.innerHTML = '';
+    // Take only the 5 most recent evaluations
+    const recentEvaluations = sortedEvaluations.slice(0, 5);
+    
+    // Generate table rows
+    let tableHtml = '';
     
     if (recentEvaluations.length === 0) {
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="5" class="text-center">لا توجد تقييمات حديثة</td>
-            </tr>
-        `;
-        return;
+        tableHtml = `<tr><td colspan="5" class="text-center">لا توجد تقييمات حديثة</td></tr>`;
+    } else {
+        recentEvaluations.forEach(eval => {
+            const employee = employees.find(e => e.EmployeeID === eval.EmployeeID);
+            const evaluator = employees.find(e => e.EmployeeID === eval.EvaluatorID);
+            const period = periods.find(p => p.PeriodID === eval.PeriodID);
+            
+            const employeeName = employee ? employee.FullName : 'غير معروف';
+            const evaluatorName = evaluator ? evaluator.FullName : 'غير معروف';
+            const periodName = period ? period.PeriodName : 'غير معروف';
+            const status = formatStatus(eval.StatusID);
+            const score = eval.TotalScore ? formatScore(eval.TotalScore) : '-';
+            
+            tableHtml += `
+                <tr>
+                    <td>${employeeName}</td>
+                    <td>${evaluatorName}</td>
+                    <td>${periodName}</td>
+                    <td>${status}</td>
+                    <td>${score}</td>
+                </tr>
+            `;
+        });
     }
     
-    recentEvaluations.forEach(evaluation => {
-        const employee = getEmployeeById(evaluation.EmployeeID);
-        const evaluator = getEmployeeById(evaluation.EvaluatorID);
-        const period = getEvaluationPeriodById(evaluation.PeriodID);
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${employee ? employee.FullName : '-'}</td>
-            <td>${evaluator ? evaluator.FullName : '-'}</td>
-            <td>${period ? period.PeriodName : '-'}</td>
-            <td>${formatScore(evaluation.TotalScore)}</td>
-            <td>${formatStatus(evaluation.StatusID)}</td>
-        `;
-        
-        tableBody.appendChild(row);
-    });
+    // Update table
+    document.getElementById('recent-evaluations-body').innerHTML = tableHtml;
 }
 
-// Get department statistics for a specific department
+// Get department-specific statistics
 function getDepartmentStatistics(departmentId) {
-    const employees = getEmployeesByDepartment(departmentId).filter(emp => emp.IsActive === 1);
-    const evaluations = getEvaluationsByDepartment(departmentId);
+    const employees = getAllEmployees().filter(e => e.DepartmentID === departmentId && e.IsActive === 1);
+    const activePeriod = getActiveEvaluationPeriod();
     
-    // Calculate average score
-    let totalScore = 0;
-    let scoreCount = 0;
+    let departmentEvaluations = [];
+    if (activePeriod) {
+        const allEvaluations = getAllEmployeeEvaluations().filter(e => e.PeriodID === activePeriod.PeriodID);
+        departmentEvaluations = allEvaluations.filter(eval => {
+            const employee = employees.find(e => e.EmployeeID === eval.EmployeeID);
+            return employee !== undefined;
+        });
+    }
     
-    evaluations.forEach(eval => {
-        if (eval.TotalScore) {
-            totalScore += parseFloat(eval.TotalScore);
-            scoreCount++;
-        }
-    });
+    // Count completed evaluations
+    const completedEvaluations = departmentEvaluations.filter(e => e.StatusID === 4);
     
-    const avgScore = scoreCount > 0 ? (totalScore / scoreCount).toFixed(1) : 0;
+    // Count pending evaluations
+    const pendingEvaluations = departmentEvaluations.filter(e => e.StatusID !== 4 && e.StatusID !== 5);
     
-    // Count evaluations by status
-    const statuses = getAllEvaluationStatuses();
-    const statusCounts = {};
+    // Calculate completion percentage
+    const totalRequired = employees.length;
+    const completionPercentage = totalRequired > 0 ? 
+        Math.round((completedEvaluations.length / totalRequired) * 100) : 0;
     
-    statuses.forEach(status => {
-        statusCounts[status.StatusName] = evaluations.filter(eval => eval.StatusID === status.StatusID).length;
-    });
+    // Update department statistics card
+    document.getElementById('dept-employees-count').textContent = employees.length;
+    document.getElementById('dept-completed-count').textContent = completedEvaluations.length;
+    document.getElementById('dept-pending-count').textContent = pendingEvaluations.length;
+    document.getElementById('dept-completion-percentage').textContent = `${completionPercentage}%`;
     
-    return {
-        employeeCount: employees.length,
-        evaluationCount: evaluations.length,
-        averageScore: avgScore,
-        statusCounts: statusCounts
-    };
+    // Show department statistics card
+    document.getElementById('department-stats-card').classList.remove('d-none');
 }
