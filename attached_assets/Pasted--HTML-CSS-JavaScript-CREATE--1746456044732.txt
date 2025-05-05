@@ -1,0 +1,333 @@
+صمم لي هاذا موقع ويب HTML, CSS, JavaScript فقط اعتماد على القاعدة 
+-- إنشاء قاعدة البيانات
+CREATE DATABASE EmployeeEvaluationSystem;
+GO
+
+-- استخدام قاعدة البيانات
+USE EmployeeEvaluationSystem;
+GO
+
+-- إنشاء جدول الأقسام
+CREATE TABLE Departments (
+    DepartmentID INT PRIMARY KEY IDENTITY(1,1), -- معرف فريد للقسم، يزداد تلقائياً
+    DepartmentName NVARCHAR(100) NOT NULL, -- اسم القسم (إجباري)
+    DepartmentCode NVARCHAR(20), -- رمز القسم (اختياري)
+    Description NVARCHAR(500), -- وصف القسم (اختياري)
+    CreatedAt DATETIME DEFAULT GETDATE(), -- تاريخ إنشاء السجل
+    UpdatedAt DATETIME DEFAULT GETDATE() -- تاريخ آخر تحديث للسجل
+);
+
+-- إنشاء جدول المستخدمين
+CREATE TABLE Users (
+    UserID INT PRIMARY KEY IDENTITY(1,1), -- معرف فريد للمستخدم، يزداد تلقائياً
+    Username NVARCHAR(50) NOT NULL UNIQUE, -- اسم المستخدم (إجباري وفريد)
+    Password NVARCHAR(255) NOT NULL, -- كلمة المرور المشفرة (إجباري)
+    Email NVARCHAR(100) NOT NULL UNIQUE, -- البريد الإلكتروني (إجباري وفريد)
+    FullName NVARCHAR(100) NOT NULL, -- الاسم الكامل للمستخدم (إجباري)
+    IsActive BIT DEFAULT 1, -- حالة المستخدم (نشط=1، غير نشط=0)
+    CreatedAt DATETIME DEFAULT GETDATE(), -- تاريخ إنشاء السجل
+    UpdatedAt DATETIME DEFAULT GETDATE() -- تاريخ آخر تحديث للسجل
+);
+
+-- إنشاء جدول أدوار المستخدمين
+CREATE TABLE UserRoles (
+    RoleID INT PRIMARY KEY IDENTITY(1,1), -- معرف فريد للدور، يزداد تلقائياً
+    RoleName NVARCHAR(50) NOT NULL, -- اسم الدور (إجباري)
+    Description NVARCHAR(200) -- وصف الدور (اختياري)
+);
+
+-- إنشاء جدول ربط المستخدمين بالأدوار
+CREATE TABLE UserRoleMapping (
+    UserID INT, -- معرف المستخدم (مفتاح خارجي)
+    RoleID INT, -- معرف الدور (مفتاح خارجي)
+    PRIMARY KEY (UserID, RoleID), -- المفتاح الأساسي المركب
+    FOREIGN KEY (UserID) REFERENCES Users(UserID), -- ربط مع جدول المستخدمين
+    FOREIGN KEY (RoleID) REFERENCES UserRoles(RoleID) -- ربط مع جدول الأدوار
+);
+
+-- إنشاء جدول الموظفين
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY IDENTITY(1,1), -- معرف فريد للموظف، يزداد تلقائياً
+    EmployeeNumber NVARCHAR(20) NOT NULL UNIQUE, -- رقم الموظف (إجباري وفريد)
+    FirstName NVARCHAR(50) NOT NULL, -- الاسم الأول (إجباري)
+    LastName NVARCHAR(50) NOT NULL, -- الاسم الأخير (إجباري)
+    FullName AS (FirstName + ' ' + LastName) PERSISTED, -- الاسم الكامل (محسوب تلقائياً)
+    DepartmentID INT, -- معرف القسم (مفتاح خارجي)
+    Position NVARCHAR(100), -- المنصب الوظيفي (اختياري)
+    HireDate DATE, -- تاريخ التعيين (اختياري)
+    BirthDate DATE, -- تاريخ الميلاد (اختياري)
+    Email NVARCHAR(100), -- البريد الإلكتروني (اختياري)
+    Phone NVARCHAR(20), -- رقم الهاتف (اختياري)
+    ManagerID INT, -- معرف المدير المباشر (مفتاح خارجي ذاتي)
+    UserID INT, -- معرف المستخدم المرتبط (مفتاح خارجي)
+    IsActive BIT DEFAULT 1, -- حالة الموظف (نشط=1، غير نشط=0)
+    CreatedAt DATETIME DEFAULT GETDATE(), -- تاريخ إنشاء السجل
+    UpdatedAt DATETIME DEFAULT GETDATE(), -- تاريخ آخر تحديث للسجل
+    FOREIGN KEY (DepartmentID) REFERENCES Departments(DepartmentID), -- ربط مع جدول الأقسام
+    FOREIGN KEY (ManagerID) REFERENCES Employees(EmployeeID), -- ربط ذاتي مع نفس الجدول (المدير)
+    FOREIGN KEY (UserID) REFERENCES Users(UserID) -- ربط مع جدول المستخدمين
+);
+
+-- إنشاء جدول فترات التقييم
+CREATE TABLE EvaluationPeriods (
+    PeriodID INT PRIMARY KEY IDENTITY(1,1), -- معرف فريد لفترة التقييم، يزداد تلقائياً
+    PeriodName NVARCHAR(100) NOT NULL, -- اسم فترة التقييم (إجباري)
+    StartDate DATE NOT NULL, -- تاريخ بداية الفترة (إجباري)
+    EndDate DATE NOT NULL, -- تاريخ نهاية الفترة (إجباري)
+    Year INT NOT NULL, -- السنة التي تنتمي إليها فترة التقييم (إجباري)
+    IsActive BIT DEFAULT 0, -- هل الفترة نشطة حالياً (نشط=1، غير نشط=0)
+    CreatedAt DATETIME DEFAULT GETDATE(), -- تاريخ إنشاء السجل
+    UpdatedAt DATETIME DEFAULT GETDATE() -- تاريخ آخر تحديث للسجل
+);
+
+-- إنشاء جدول معايير التقييم
+CREATE TABLE EvaluationCriteria (
+    CriteriaID INT PRIMARY KEY IDENTITY(1,1), -- معرف فريد للمعيار، يزداد تلقائياً
+    CriteriaName NVARCHAR(200) NOT NULL, -- اسم معيار التقييم (إجباري)
+    Description NVARCHAR(500), -- وصف المعيار (اختياري)
+    Weight DECIMAL(5,2) DEFAULT 1.00, -- وزن المعيار في التقييم النهائي (افتراضي=1)
+    MaxScore INT DEFAULT 10, -- أقصى درجة للمعيار (افتراضي=10)
+    IsActive BIT DEFAULT 1, -- حالة المعيار (نشط=1، غير نشط=0)
+    CreatedAt DATETIME DEFAULT GETDATE(), -- تاريخ إنشاء السجل
+    UpdatedAt DATETIME DEFAULT GETDATE() -- تاريخ آخر تحديث للسجل
+);
+
+-- إنشاء جدول حالات التقييم
+CREATE TABLE EvaluationStatuses (
+    StatusID INT PRIMARY KEY IDENTITY(1,1), -- معرف فريد للحالة، يزداد تلقائياً
+    StatusName NVARCHAR(50) NOT NULL, -- اسم حالة التقييم (إجباري)
+    Description NVARCHAR(200) -- وصف الحالة (اختياري)
+);
+
+-- إنشاء جدول تقييمات الموظفين
+CREATE TABLE EmployeeEvaluations (
+    EvaluationID INT PRIMARY KEY IDENTITY(1,1), -- معرف فريد للتقييم، يزداد تلقائياً
+    EmployeeID INT NOT NULL, -- معرف الموظف الذي يتم تقييمه (مفتاح خارجي)
+    PeriodID INT NOT NULL, -- معرف فترة التقييم (مفتاح خارجي)
+    EvaluatorID INT NOT NULL, -- معرف الشخص القائم بالتقييم (مفتاح خارجي)
+    TotalScore DECIMAL(5,2), -- مجموع النقاط النهائي للتقييم
+    Comments NVARCHAR(1000), -- تعليقات عامة على التقييم
+    StatusID INT NOT NULL, -- حالة التقييم (مفتاح خارجي)
+    SubmissionDate DATETIME, -- تاريخ تقديم التقييم
+    CompletionDate DATETIME, -- تاريخ اكتمال/اعتماد التقييم
+    CreatedAt DATETIME DEFAULT GETDATE(), -- تاريخ إنشاء السجل
+    UpdatedAt DATETIME DEFAULT GETDATE(), -- تاريخ آخر تحديث للسجل
+    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID), -- ربط مع جدول الموظفين
+    FOREIGN KEY (PeriodID) REFERENCES EvaluationPeriods(PeriodID), -- ربط مع جدول فترات التقييم
+    FOREIGN KEY (EvaluatorID) REFERENCES Employees(EmployeeID), -- ربط مع جدول الموظفين (المقيّم)
+    FOREIGN KEY (StatusID) REFERENCES EvaluationStatuses(StatusID) -- ربط مع جدول حالات التقييم
+);
+
+-- إنشاء جدول تفاصيل التقييم
+CREATE TABLE EvaluationDetails (
+    DetailID INT PRIMARY KEY IDENTITY(1,1), -- معرف فريد لتفصيل التقييم، يزداد تلقائياً
+    EvaluationID INT NOT NULL, -- معرف التقييم (مفتاح خارجي)
+    CriteriaID INT NOT NULL, -- معرف المعيار (مفتاح خارجي)
+    Score DECIMAL(5,2) NOT NULL, -- الدرجة المعطاة لهذا المعيار (إجباري)
+    Comments NVARCHAR(500), -- تعليقات خاصة بهذا المعيار
+    CreatedAt DATETIME DEFAULT GETDATE(), -- تاريخ إنشاء السجل
+    UpdatedAt DATETIME DEFAULT GETDATE(), -- تاريخ آخر تحديث للسجل
+    FOREIGN KEY (EvaluationID) REFERENCES EmployeeEvaluations(EvaluationID), -- ربط مع جدول التقييمات
+    FOREIGN KEY (CriteriaID) REFERENCES EvaluationCriteria(CriteriaID) -- ربط مع جدول معايير التقييم
+);
+
+
+
+
+المدخلات :
+
+-- إدخال بيانات أدوار المستخدمين
+INSERT INTO UserRoles (RoleName, Description)
+VALUES 
+('Administrator', N'مسؤول النظام مع كامل الصلاحيات'),
+('HR Manager', N'مدير الموارد البشرية'),
+('Department Manager', N'مدير القسم'),
+('Employee', N'موظف عادي');
+
+-- إدخال بيانات حالات التقييم
+INSERT INTO EvaluationStatuses (StatusName, Description)
+VALUES 
+('Draft', N'تقييم في حالة المسودة'),
+('Submitted', N'تم تقديم التقييم'),
+('In Review', N'قيد المراجعة'),
+('Completed', N'تم الانتهاء من التقييم'),
+('Rejected', N'تم رفض التقييم');
+
+-- إدخال بيانات المستخدمين
+INSERT INTO Users (Username, Password, Email, FullName, IsActive)
+VALUES
+('admin', 'P@ssw0rd123', 'admin@company.com', N'مسؤول النظام', 1),
+('hr_manager', 'P@ssw0rd123', 'hr@company.com', N'مدير الموارد البشرية', 1),
+('it_manager', 'P@ssw0rd123', 'it.manager@company.com', N'مدير قسم تقنية المعلومات', 1),
+('finance_manager', 'P@ssw0rd123', 'finance.manager@company.com', N'مدير قسم المالية', 1),
+('hr_staff', 'P@ssw0rd123', 'hr.staff@company.com', N'موظف موارد بشرية', 1),
+('dev1', 'P@ssw0rd123', 'dev1@company.com', N'مطور برمجيات 1', 1),
+('dev2', 'P@ssw0rd123', 'dev2@company.com', N'مطور برمجيات 2', 1),
+('accountant1', 'P@ssw0rd123', 'accountant1@company.com', N'محاسب 1', 1),
+('accountant2', 'P@ssw0rd123', 'accountant2@company.com', N'محاسب 2', 1);
+
+-- ربط المستخدمين بالأدوار
+INSERT INTO UserRoleMapping (UserID, RoleID)
+VALUES
+(1, 1), -- مسؤول النظام
+(2, 2), -- مدير الموارد البشرية
+(3, 3), -- مدير قسم تقنية المعلومات
+(4, 3), -- مدير قسم المالية
+(5, 4), -- موظف موارد بشرية
+(6, 4), -- مطور برمجيات 1
+(7, 4), -- مطور برمجيات 2
+(8, 4), -- محاسب 1
+(9, 4); -- محاسب 2
+
+-- إدخال بيانات الأقسام
+INSERT INTO Departments (DepartmentName, DepartmentCode, Description)
+VALUES
+(N'الإدارة العليا', 'MGMT', N'قسم الإدارة العليا والتنفيذية'),
+(N'الموارد البشرية', 'HR', N'قسم إدارة الموارد البشرية'),
+(N'تقنية المعلومات', 'IT', N'قسم البرمجة وتطوير الأنظمة'),
+(N'المالية والمحاسبة', 'FIN', N'قسم الشؤون المالية والمحاسبة'),
+(N'المبيعات والتسويق', 'SALES', N'قسم المبيعات وخدمة العملاء');
+
+-- إدخال بيانات الموظفين
+INSERT INTO Employees (EmployeeNumber, FirstName, LastName, DepartmentID, Position, HireDate, BirthDate, Email, Phone, ManagerID, UserID, IsActive)
+VALUES
+-- الإدارة العليا
+('EMP001', N'أحمد', N'الأحمد', 1, N'المدير التنفيذي', '2015-01-15', '1975-05-10', 'ceo@company.com', '0500000001', NULL, 1, 1),
+
+-- قسم الموارد البشرية
+('EMP002', N'سارة', N'العبدالله', 2, N'مدير الموارد البشرية', '2016-03-20', '1980-08-15', 'hr@company.com', '0500000002', 1, 2, 1),
+('EMP003', N'محمد', N'السالم', 2, N'أخصائي توظيف', '2018-06-10', '1985-11-22', 'hr.staff@company.com', '0500000003', 2, 5, 1),
+
+-- قسم تقنية المعلومات
+('EMP004', N'خالد', N'الخالد', 3, N'مدير تقنية المعلومات', '2017-02-05', '1982-07-30', 'it.manager@company.com', '0500000004', 1, 3, 1),
+('EMP005', N'فاطمة', N'الفهد', 3, N'مطور برمجيات أول', '2019-04-18', '1988-12-05', 'dev1@company.com', '0500000005', 4, 6, 1),
+('EMP006', N'عمر', N'العمر', 3, N'مطور برمجيات', '2020-09-01', '1990-03-25', 'dev2@company.com', '0500000006', 4, 7, 1),
+
+-- قسم المالية والمحاسبة
+('EMP007', N'نورة', N'النور', 4, N'مدير مالي', '2016-08-10', '1981-09-14', 'finance.manager@company.com', '0500000007', 1, 4, 1),
+('EMP008', N'سلطان', N'السلطان', 4, N'محاسب أول', '2018-11-20', '1986-04-18', 'accountant1@company.com', '0500000008', 7, 8, 1),
+('EMP009', N'منى', N'المنصور', 4, N'محاسب', '2021-01-15', '1992-02-28', 'accountant2@company.com', '0500000009', 7, 9, 1);
+
+-- إدخال بيانات فترات التقييم
+INSERT INTO EvaluationPeriods (PeriodName, StartDate, EndDate, Year, IsActive)
+VALUES
+(N'تقييم النصف الأول 2024', '2024-01-01', '2024-06-30', 2024, 0),
+(N'تقييم النصف الثاني 2024', '2024-07-01', '2024-12-31', 2024, 1),
+(N'تقييم النصف الأول 2025', '2025-01-01', '2025-06-30', 2025, 0);
+
+-- إدخال بيانات معايير التقييم
+INSERT INTO EvaluationCriteria (CriteriaName, Description, Weight, MaxScore, IsActive)
+VALUES
+(N'الأداء الوظيفي', N'مستوى إنجاز المهام المطلوبة وجودة العمل', 2.00, 10, 1),
+(N'الالتزام والانضباط', N'الالتزام بأوقات الدوام والتعليمات', 1.50, 10, 1),
+(N'العمل الجماعي', N'القدرة على العمل ضمن فريق والتعاون مع الزملاء', 1.00, 10, 1),
+(N'المبادرة والإبداع', N'تقديم أفكار جديدة ومبادرات لتطوير العمل', 1.25, 10, 1),
+(N'مهارات التواصل', N'القدرة على التواصل بفعالية مع الآخرين', 1.00, 10, 1),
+(N'القيادة', N'القدرة على قيادة الفريق وتوجيه الآخرين', 1.50, 10, 1),
+(N'التطور المهني', N'السعي للتطور وتنمية المهارات', 0.75, 10, 1);
+
+-- إدخال بيانات تقييمات الموظفين
+INSERT INTO EmployeeEvaluations (EmployeeID, PeriodID, EvaluatorID, TotalScore, Comments, StatusID, SubmissionDate, CompletionDate)
+VALUES
+-- تقييمات النصف الأول 2024
+(3, 1, 2, 8.75, N'أداء جيد جداً مع الحاجة إلى تحسين مهارات التواصل', 4, '2024-06-15', '2024-06-20'),
+(5, 1, 4, 9.25, N'أداء ممتاز وتفاني في العمل', 4, '2024-06-10', '2024-06-18'),
+(6, 1, 4, 7.80, N'أداء جيد ويحتاج إلى تطوير مهارات تقنية إضافية', 4, '2024-06-12', '2024-06-18'),
+(8, 1, 7, 8.50, N'أداء ممتاز ودقة في العمل المحاسبي', 4, '2024-06-14', '2024-06-19'),
+(9, 1, 7, 7.20, N'أداء جيد ويحتاج إلى مزيد من الخبرة', 4, '2024-06-14', '2024-06-19'),
+
+-- تقييمات النصف الثاني 2024 (جارية)
+(3, 2, 2, NULL, NULL, 1, NULL, NULL), -- مسودة
+(5, 2, 4, 9.40, N'استمرار التميز والأداء الممتاز', 2, '2024-12-05', NULL), -- تم التقديم
+(6, 2, 4, 8.30, N'تحسن ملحوظ في الأداء والمهارات', 3, '2024-12-03', NULL); -- قيد المراجعة
+
+-- إدخال بيانات تفاصيل التقييم (للتقييمات المكتملة فقط)
+-- تقييم موظف الموارد البشرية (محمد السالم)
+INSERT INTO EvaluationDetails (EvaluationID, CriteriaID, Score, Comments)
+VALUES
+(1, 1, 9.0, N'أداء ممتاز في مهام التوظيف'),
+(1, 2, 9.5, N'التزام ممتاز بأوقات الدوام'),
+(1, 3, 8.5, N'تعاون جيد مع زملاء العمل'),
+(1, 4, 7.5, N'يحتاج إلى تقديم مبادرات أكثر'),
+(1, 5, 7.0, N'يحتاج إلى تحسين مهارات التواصل خاصة مع المتقدمين للوظائف');
+
+-- تقييم مطور البرمجيات الأول (فاطمة الفهد)
+INSERT INTO EvaluationDetails (EvaluationID, CriteriaID, Score, Comments)
+VALUES
+(2, 1, 9.5, N'أداء متميز في تطوير البرمجيات'),
+(2, 2, 9.0, N'التزام ممتاز بمواعيد تسليم المشاريع'),
+(2, 3, 9.5, N'تعاون ممتاز مع فريق العمل'),
+(2, 4, 9.0, N'تقديم أفكار مبتكرة وحلول إبداعية'),
+(2, 5, 8.5, N'مهارات تواصل جيدة جداً'),
+(2, 7, 9.5, N'سعي دائم للتطور وتعلم تقنيات جديدة');
+
+-- تقييم مطور البرمجيات (عمر العمر)
+INSERT INTO EvaluationDetails (EvaluationID, CriteriaID, Score, Comments)
+VALUES
+(3, 1, 8.0, N'أداء جيد في المهام البرمجية'),
+(3, 2, 8.5, N'التزام جيد جداً بأوقات الدوام'),
+(3, 3, 8.0, N'تعاون جيد مع الفريق'),
+(3, 4, 7.0, N'يحتاج إلى تطوير الإبداع في حل المشكلات'),
+(3, 5, 7.5, N'مهارات تواصل مناسبة'),
+(3, 7, 8.0, N'اهتمام جيد بالتطور المهني');
+
+-- تقييم المحاسب الأول (سلطان السلطان)
+INSERT INTO EvaluationDetails (EvaluationID, CriteriaID, Score, Comments)
+VALUES
+(4, 1, 9.0, N'دقة عالية في العمل المحاسبي'),
+(4, 2, 9.0, N'التزام ممتاز بالمواعيد'),
+(4, 3, 8.0, N'تعاون جيد مع فريق المالية'),
+(4, 4, 7.5, N'تقديم بعض المقترحات لتحسين العمليات'),
+(4, 5, 8.0, N'مهارات تواصل جيدة مع الإدارات الأخرى');
+
+-- تقييم المحاسب (منى المنصور)
+INSERT INTO EvaluationDetails (EvaluationID, CriteriaID, Score, Comments)
+VALUES
+(5, 1, 7.5, N'أداء جيد في المهام المحاسبية اليومية'),
+(5, 2, 8.0, N'التزام جيد بأوقات الدوام'),
+(5, 3, 7.5, N'تعاون مقبول مع الزملاء'),
+(5, 4, 6.5, N'تحتاج إلى تطوير المبادرة'),
+(5, 5, 7.0, N'مهارات تواصل مناسبة تحتاج إلى تطوير');
+
+-- تقييم مطور البرمجيات الأول (فاطمة الفهد) للنصف الثاني - تم التقديم
+INSERT INTO EvaluationDetails (EvaluationID, CriteriaID, Score, Comments)
+VALUES
+(7, 1, 9.5, N'استمرار التميز في تطوير البرمجيات'),
+(7, 2, 9.5, N'التزام ممتاز بجميع المواعيد'),
+(7, 3, 9.5, N'دور قيادي في فريق العمل'),
+(7, 4, 9.0, N'مبادرات عديدة لتحسين أداء التطبيقات'),
+(7, 5, 9.0, N'تحسن ملحوظ في مهارات العرض والتقديم'),
+(7, 7, 9.5, N'تعلم تقنيات جديدة وتطبيقها في العمل');
+
+-- تقييم مطور البرمجيات (عمر العمر) للنصف الثاني - قيد المراجعة
+INSERT INTO EvaluationDetails (EvaluationID, CriteriaID, Score, Comments)
+VALUES
+(8, 1, 8.5, N'تحسن ملحوظ في جودة الكود البرمجي'),
+(8, 2, 8.5, N'التزام جيد جداً بالمواعيد'),
+(8, 3, 8.5, N'تعاون أفضل مع أعضاء الفريق'),
+(8, 4, 8.0, N'تقديم بعض الأفكار المبتكرة'),
+(8, 5, 8.0, N'تحسن في مهارات التواصل'),
+(8, 7, 8.5, N'المشاركة في دورات تدريبية متخصصة');
+
+GO
+
+-- التحقق من إدخال البيانات
+SELECT 'Users' AS TableName, COUNT(*) AS RecordCount FROM Users
+UNION ALL
+SELECT 'UserRoles', COUNT(*) FROM UserRoles
+UNION ALL
+SELECT 'UserRoleMapping', COUNT(*) FROM UserRoleMapping
+UNION ALL
+SELECT 'Departments', COUNT(*) FROM Departments
+UNION ALL
+SELECT 'Employees', COUNT(*) FROM Employees
+UNION ALL
+SELECT 'EvaluationPeriods', COUNT(*) FROM EvaluationPeriods
+UNION ALL
+SELECT 'EvaluationCriteria', COUNT(*) FROM EvaluationCriteria
+UNION ALL
+SELECT 'EvaluationStatuses', COUNT(*) FROM EvaluationStatuses
+UNION ALL
+SELECT 'EmployeeEvaluations', COUNT(*) FROM EmployeeEvaluations
+UNION ALL
+SELECT 'EvaluationDetails', COUNT(*) FROM EvaluationDetails;
